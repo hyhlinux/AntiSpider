@@ -18,7 +18,8 @@ class IpHandler(BaseHandler):
 		data_list = {
 		}
 
-		only_ip = self.get_arguments('only_ip')
+		# 字符串，非空即可
+		only_ip = self.get_argument('only_ip')
 		if only_ip:
 			top_ip = self.es.get_top_ip()
 			self.write(json.dumps(dict(ips=top_ip)))
