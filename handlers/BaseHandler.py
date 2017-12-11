@@ -6,12 +6,17 @@ from .log import get_log
 
 logger = get_log()
 
+
 class BaseHandler(RequestHandler):
     """请求处理基类"""
 
     @property
     def es(self):
         return self.application.es
+
+    @property
+    def loop(self):
+        return self.application.loop
 
     @property
     def logger(self):
@@ -25,9 +30,3 @@ class BaseHandler(RequestHandler):
 
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json; charset=UTF-8")
-
-
-
-
-
-

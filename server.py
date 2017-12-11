@@ -1,4 +1,5 @@
 import tornado.web
+import asyncio
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
@@ -10,8 +11,10 @@ define("port", default=8000, help="run on the given port", type=int)
 
 
 class Application(tornado.web.Application):
+
     def __init__(self):
         self.es = ES()
+        self.loop = asyncio.get_event_loop()
         super(Application, self).__init__(urls)
 
 
