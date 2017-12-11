@@ -1,5 +1,7 @@
 import datetime
+import asyncio
 import elasticsearch
+from aioes import Elasticsearch as AsyncElasticsearch
 from .log import get_log
 
 logger = get_log()
@@ -17,11 +19,19 @@ class ES(object):
     def __init__(self, index="nginx-access-log-*"):
         self.index = index
         self.es = self.connect_host()
+        self.aioes = self.aio_connect_host()
+
+    def aio_connect_host(cls, hosts=hosts):
+        aioes = AsyncElasticsearch(
+            hosts,
+            sniffer_timeout=600
+        )
+        return aioes
 
     def connect_host(cls, hosts=hosts):
         es = elasticsearch.Elasticsearch(
             hosts,
-            # # sniff_on_start=True,
+            # sniff_on_start=True,
             # sniff_on_connection_fail=True,
             sniffer_timeout=600
         )
