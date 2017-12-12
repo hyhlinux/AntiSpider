@@ -1,5 +1,6 @@
 import json
 import asyncio
+from tornado import gen
 from .BaseHandler import BaseHandler
 
 
@@ -84,17 +85,25 @@ class AioAutoIpsHandler(BaseHandler):
 
     """
 
+    @gen.coroutine
     def get(self):
-        # top_ip = yield from self.es.async_get_top_ip()
+        top_ip = yield from self.es.async_get_top_ip()
+        responses = yield from {ip.get('key', ''): self.es.async_get_ip_rate(ip.get('key', '')) for ip in top_ip}
+        print(responses)
         # data = {}
         # for item in top_ip:
         #     ip = item.get('key', '')
         #     data[ip] = yield from self.loop.run_until_complete(self.es.async_get_ip_rate(ip))
         # if not data:
         #     data = {}
-        data = self.loop.run_until_complete(self.aio_ip_rete())
-        self.write(json.dumps(data))
+        # data = self.loop.run_until_complete(self.aio_ip_rete())
+        self.write(json.dumps(responses))
         return
+
+    @gen.coroutine
+    def parallel_fetch_dict(self, top_ip=None):
+        responses = yield {ip.get('key', ''): self.es.async_get_ip_rate(ip.get('key', '')) for ip in top_ip}
+        print(responses)
 
     @asyncio.coroutine
     def aio_ip_rete(self):

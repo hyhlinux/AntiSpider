@@ -1,8 +1,12 @@
 import json
+import datetime
+import os
 import asyncio
+import pandas as pd
 from tornado import gen
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from .BaseHandler import BaseHandler
+# from urls import static_path_dir
 
 
 class AutoHandler(BaseHandler):
@@ -12,16 +16,28 @@ class AutoHandler(BaseHandler):
     """
 
     def get(self):
-        data_list = {}
         top_ip_list = self.es.get_top_ip()
-        for ip in top_ip_list:
+        df = pd.DataFrame(columns=['ip', 'total', 'download.pureapk.com', 'apkpure.com'])
+        df.index_lable = 'index'
+        for index, ip in enumerate(top_ip_list):
             data = self.es.get_ip_rate(ip.get('key', ""))
             ip_key = ip.get('key', "")
             ip_cnt = ip.get('doc_count', 0)
-            self.logger.info("{:<15}\t\t:{cnt}:\t\t{data}".format(
-                ip_key, cnt=ip_cnt, data=data))
-            data_list[ip_key] = data
-        self.write(json.dumps(data_list))
+            # self.logger.info("{:<15}\t\t:{cnt}:\t\t{data}".format(
+            #     ip_key, cnt=ip_cnt, data=data))
+            df.loc[index] = [ip_key, ip_cnt, data.get('download.pureapk.com', '0.00%'), data.get('apkpure.com', '0.00%')]
+
+        # 数据直接输出到日志中
+        self.logger.info("df:\n{}".format(df))
+        df = df.sort_values(['total', 'download.pureapk.com'], ascending=False)
+        df_spider = df[df['download.pureapk.com'] == '100.00%']
+        df_spider = df_spider[df_spider['total'] > 1000]
+        self.logger.info("df_spider:\n{}".format(df_spider))
+        file_name = "/tmp/anti_spider.cvs".format(datetime.datetime.now().timestamp())
+        # test
+        # file_name = "/Users/apple/github/math/demo_numpy_pandas/auto_test.cvs"
+        df.to_csv(file_name, sep=',', encoding='utf-8', index=False, index_label='index')
+        self.write(json.dumps(df_spider.T.to_dict()))
 
 
 class AioAutoHandler(BaseHandler):

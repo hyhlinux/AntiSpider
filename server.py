@@ -22,6 +22,7 @@ def main():
     tornado.options.parse_command_line()
     app = Application()
     print("ser port: ", options.port)
+    print("cvs: /tmp/anti_spider.cvs")
     app.listen(options.port)
     tornado.ioloop.IOLoop.current().start()
 

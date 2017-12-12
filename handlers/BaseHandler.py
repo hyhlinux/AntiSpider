@@ -20,7 +20,7 @@ class BaseHandler(RequestHandler):
 
     @property
     def logger(self):
-	    return logger
+        return logger
 
     def prepare(self):
         if self.request.headers.get("Content-Type", "").startswith("application/json"):
@@ -30,3 +30,8 @@ class BaseHandler(RequestHandler):
 
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json; charset=UTF-8")
+
+
+class StaticFileHandler(tornado.web.StaticFileHandler):
+    def __init__(self, *args, **kwargs):
+        super(StaticFileHandler, self).__init__(*args, **kwargs)

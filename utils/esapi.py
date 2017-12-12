@@ -40,7 +40,7 @@ class ES(object):
         )
         return es
 
-    def get_top_ip(self, size=100):
+    def get_top_ip(self, size=50):
         now = datetime.datetime.now()
         aggs = {
             "topip": {
@@ -133,7 +133,7 @@ class ES(object):
 
         # 计算百分比
         data = {
-            "ip:": ip,
+            "ip": ip,
             "total": total,
         }
         for domain in rate:
