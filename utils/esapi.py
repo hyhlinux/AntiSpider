@@ -22,13 +22,13 @@ class ES(object):
         self.aioes = self.aio_connect_host()
         self.logger = logger
 
-    @staticmethod
-    def aio_connect_host(hosts=hosts):
-        aioes = AsyncElasticsearch(
-            hosts,
-            sniffer_timeout=600
-        )
-        return aioes
+    # @staticmethod
+    # def aio_connect_host(hosts=hosts):
+    #     aioes = AsyncElasticsearch(
+    #         hosts,
+    #         sniffer_timeout=600
+    #     )
+    #     return aioes
 
     @staticmethod
     def connect_host(hosts=hosts):
@@ -69,35 +69,35 @@ class ES(object):
         self.logger.info("top{}_ip".format(len(top_ip_list)))
         return top_ip_list
 
-    @asyncio.coroutine
-    def async_get_top_ip(self, size=100):
-        now = datetime.datetime.now()
-        aggs = {
-            "topip": {
-                "terms": {
-                    "field": "remote_ip.keyword",
-                    "size": size,
-                    "order": {
-                        "_count": "desc"
-                    }
-                }
-            }
-        }
-        where_term = [
-            {
-                "field_name": "domain",
-                "field_value": "download.pureapk.com"
-            }
-        ]
-        body = self.make_body(where_term=where_term,
-                              now_time=now, query_size=0, days=1, aggs=aggs)
-        res = yield from self.aioes.search(index=self.index, body=body)
-        top_ip_list = res.get('aggregations', {}).get(
-            'topip', {}).get('buckets', [])
-        if len(top_ip_list) == 0:
-            return None
-        logger.info("top{}_ip".format(len(top_ip_list)))
-        return top_ip_list
+    # @asyncio.coroutine
+    # def async_get_top_ip(self, size=100):
+    #     now = datetime.datetime.now()
+    #     aggs = {
+    #         "topip": {
+    #             "terms": {
+    #                 "field": "remote_ip.keyword",
+    #                 "size": size,
+    #                 "order": {
+    #                     "_count": "desc"
+    #                 }
+    #             }
+    #         }
+    #     }
+    #     where_term = [
+    #         {
+    #             "field_name": "domain",
+    #             "field_value": "download.pureapk.com"
+    #         }
+    #     ]
+    #     body = self.make_body(where_term=where_term,
+    #                           now_time=now, query_size=0, days=1, aggs=aggs)
+    #     res = yield from self.aioes.search(index=self.index, body=body)
+    #     top_ip_list = res.get('aggregations', {}).get(
+    #         'topip', {}).get('buckets', [])
+    #     if len(top_ip_list) == 0:
+    #         return None
+    #     logger.info("top{}_ip".format(len(top_ip_list)))
+    #     return top_ip_list
 
     def get_ip_rate(self, ip=""):
         if not ip:
@@ -145,52 +145,52 @@ class ES(object):
 
         return data
 
-    @asyncio.coroutine
-    def async_get_ip_rate(self, ip=""):
-        if not ip:
-            return None
-        now = datetime.datetime.now()
-        where_term = [
-            {
-                "field_name": "remote_ip",
-                "field_value": ip
-            }
-        ]
-
-        aggs = {
-            "rate": {
-                "terms": {
-                    "field": "domain.keyword",
-                    "size": 10,
-                    "order": {
-                        "_count": "desc"
-                    }
-                }
-            }
-        }
-
-        body = self.make_body(where_term=where_term,
-                              now_time=now, query_size=0, days=1, aggs=aggs)
-        res = yield from self.aioes.search(index=self.index, body=body)
-        total = res.get('hits', {}).get('total', 0)
-        rate = res.get('aggregations', {}).get(
-            'rate', {}).get('buckets', [])
-        if len(rate) == 0:
-            return None
-
-        # 计算百分比
-        data = {
-            "ip:": ip,
-            "total": total,
-        }
-        for domain in rate:
-            domain_key = domain.get('key', '')
-            domain_num = domain.get('doc_count', 0)
-            if not domain_key:
-                continue
-            data[domain_key] = "{:.2%}".format(domain_num / total)
-
-        return data
+    # @asyncio.coroutine
+    # def async_get_ip_rate(self, ip=""):
+    #     if not ip:
+    #         return None
+    #     now = datetime.datetime.now()
+    #     where_term = [
+    #         {
+    #             "field_name": "remote_ip",
+    #             "field_value": ip
+    #         }
+    #     ]
+    #
+    #     aggs = {
+    #         "rate": {
+    #             "terms": {
+    #                 "field": "domain.keyword",
+    #                 "size": 10,
+    #                 "order": {
+    #                     "_count": "desc"
+    #                 }
+    #             }
+    #         }
+    #     }
+    #
+    #     body = self.make_body(where_term=where_term,
+    #                           now_time=now, query_size=0, days=1, aggs=aggs)
+    #     res = yield from self.aioes.search(index=self.index, body=body)
+    #     total = res.get('hits', {}).get('total', 0)
+    #     rate = res.get('aggregations', {}).get(
+    #         'rate', {}).get('buckets', [])
+    #     if len(rate) == 0:
+    #         return None
+    #
+    #     # 计算百分比
+    #     data = {
+    #         "ip:": ip,
+    #         "total": total,
+    #     }
+    #     for domain in rate:
+    #         domain_key = domain.get('key', '')
+    #         domain_num = domain.get('doc_count', 0)
+    #         if not domain_key:
+    #             continue
+    #         data[domain_key] = "{:.2%}".format(domain_num / total)
+    #
+    #     return data
 
     def make_body(self, where_terms=None, where_term=None, now_time=None, days=1, sort=None, query_size=0, aggs=None, time_stamp="@timestamp"):
         """
@@ -268,9 +268,6 @@ def main():
     top_ip_list = es.get_top_ip()
     for ip in top_ip_list:
         data = es.get_ip_rate(ip.get('key', ""))
-        # ip_key = ip.get('key', "")
-        # ip_cnt = ip.get('doc_count', 0)
-        # print("{:<15}\t\t:{cnt}:\t\t{data}".format(ip_key, cnt=ip_cnt, data=data))
         logger.info("{data}".format(data=data))
     # 查看对应的ip 在24小时访问域名的比例
 
