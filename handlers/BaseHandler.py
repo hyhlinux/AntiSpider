@@ -1,10 +1,9 @@
-import tornado.ioloop
 import json
 import tornado.web
 from tornado.web import RequestHandler
-from .log import get_log
+from utils import get_log
 
-logger = get_log()
+logger = get_log(name='handler')
 
 
 class BaseHandler(RequestHandler):

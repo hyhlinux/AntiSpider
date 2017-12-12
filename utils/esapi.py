@@ -1,37 +1,21 @@
 import datetime
-import asyncio
 import elasticsearch
-from aioes import Elasticsearch as AsyncElasticsearch
 from .log import get_log
-
-logger = get_log()
-
-hosts = [
-    'http://172.16.1.53:9200/',
-    'http://172.16.1.54:9200/',
-]
 
 logger = get_log(name='esapi')
 
 
 class ES(object):
 
-    def __init__(self, index="nginx-access-log-*"):
+    def __init__(self, hosts=None, index="nginx-access-log-*"):
         self.index = index
-        self.es = self.connect_host()
-        self.aioes = self.aio_connect_host()
+        self.es = self.connect_host(hosts=hosts)
         self.logger = logger
 
-    # @staticmethod
-    # def aio_connect_host(hosts=hosts):
-    #     aioes = AsyncElasticsearch(
-    #         hosts,
-    #         sniffer_timeout=600
-    #     )
-    #     return aioes
-
     @staticmethod
-    def connect_host(hosts=hosts):
+    def connect_host(hosts=None):
+        if not hosts:
+            raise
         es = elasticsearch.Elasticsearch(
             hosts,
             # sniff_on_start=True,
@@ -68,36 +52,6 @@ class ES(object):
             return None
         self.logger.info("top{}_ip".format(len(top_ip_list)))
         return top_ip_list
-
-    # @asyncio.coroutine
-    # def async_get_top_ip(self, size=100):
-    #     now = datetime.datetime.now()
-    #     aggs = {
-    #         "topip": {
-    #             "terms": {
-    #                 "field": "remote_ip.keyword",
-    #                 "size": size,
-    #                 "order": {
-    #                     "_count": "desc"
-    #                 }
-    #             }
-    #         }
-    #     }
-    #     where_term = [
-    #         {
-    #             "field_name": "domain",
-    #             "field_value": "download.pureapk.com"
-    #         }
-    #     ]
-    #     body = self.make_body(where_term=where_term,
-    #                           now_time=now, query_size=0, days=1, aggs=aggs)
-    #     res = yield from self.aioes.search(index=self.index, body=body)
-    #     top_ip_list = res.get('aggregations', {}).get(
-    #         'topip', {}).get('buckets', [])
-    #     if len(top_ip_list) == 0:
-    #         return None
-    #     logger.info("top{}_ip".format(len(top_ip_list)))
-    #     return top_ip_list
 
     def get_ip_rate(self, ip=""):
         if not ip:
@@ -145,52 +99,6 @@ class ES(object):
 
         return data
 
-    # @asyncio.coroutine
-    # def async_get_ip_rate(self, ip=""):
-    #     if not ip:
-    #         return None
-    #     now = datetime.datetime.now()
-    #     where_term = [
-    #         {
-    #             "field_name": "remote_ip",
-    #             "field_value": ip
-    #         }
-    #     ]
-    #
-    #     aggs = {
-    #         "rate": {
-    #             "terms": {
-    #                 "field": "domain.keyword",
-    #                 "size": 10,
-    #                 "order": {
-    #                     "_count": "desc"
-    #                 }
-    #             }
-    #         }
-    #     }
-    #
-    #     body = self.make_body(where_term=where_term,
-    #                           now_time=now, query_size=0, days=1, aggs=aggs)
-    #     res = yield from self.aioes.search(index=self.index, body=body)
-    #     total = res.get('hits', {}).get('total', 0)
-    #     rate = res.get('aggregations', {}).get(
-    #         'rate', {}).get('buckets', [])
-    #     if len(rate) == 0:
-    #         return None
-    #
-    #     # 计算百分比
-    #     data = {
-    #         "ip:": ip,
-    #         "total": total,
-    #     }
-    #     for domain in rate:
-    #         domain_key = domain.get('key', '')
-    #         domain_num = domain.get('doc_count', 0)
-    #         if not domain_key:
-    #             continue
-    #         data[domain_key] = "{:.2%}".format(domain_num / total)
-    #
-    #     return data
 
     def make_body(self, where_terms=None, where_term=None, now_time=None, days=1, sort=None, query_size=0, aggs=None, time_stamp="@timestamp"):
         """

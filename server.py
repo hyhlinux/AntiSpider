@@ -1,21 +1,20 @@
 import tornado.web
-import asyncio
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 from tornado.options import options, define
 from urls import urls
 from utils.esapi import ES
+from config import web_port, file_name_path, elasticsearch_conf
 
-define("port", default=8000, help="run on the given port", type=int)
-define("file_name", default="/tmp/anti_spider.cvs", help="run on the given port", type=int)
+define("port", default=web_port, help="run on the given port", type=int)
+define("file_name", default=file_name_path, help="tmp data file name", type=str)
 
 
 class Application(tornado.web.Application):
 
     def __init__(self):
-        self.es = ES()
-        self.loop = asyncio.get_event_loop()
+        self.es = ES(hosts=elasticsearch_conf.get('host'), index=elasticsearch_conf.get('index'))
         self.file_name = options.file_name
         super(Application, self).__init__(urls)
 
