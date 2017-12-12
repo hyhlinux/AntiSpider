@@ -9,23 +9,24 @@ class IpHandler(BaseHandler):
     """
 
     def get(self):
+        try:
+            only_ip = self.get_argument('only_ip', default='true')
+            if only_ip == "true":
+                top_ip = self.es.get_top_ip()
+                self.write(json.dumps(dict(ips=top_ip)))
+                return
+        except Exception as e:
+            self.logger.warning("{} onlyip:{}".format(e, only_ip))
+
         ips = self.get_arguments('ips')
         self.logger.info("ips:{}".format(ips))
         if not ips or len(ips) == 0:
             self.redirect('/api/auto')
             return
 
-        data_list = {
-        }
-
-        # 字符串，非空即可
-        only_ip = self.get_argument('only_ip')
-        if only_ip:
-            top_ip = self.es.get_top_ip()
-            self.write(json.dumps(dict(ips=top_ip)))
-            return
-
+        data_list = {}
         try:
+            # todo async
             for ip in ips:
                 data = self.es.get_ip_rate(ip)
                 data_list[ip] = data

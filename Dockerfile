@@ -1,11 +1,8 @@
-FROM python:3.5-alpine
+FROM amancevice/pandas:0.21.0-python3-alpine
 
 WORKDIR /app
 ADD require.txt /app/require.txt
-RUN apk add --update curl gcc g++ \
-    && rm -rf /var/cache/apk/* \
-    && ln -s /usr/include/locale.h /usr/include/xlocale.h \
-    && pip install -r require.txt
+RUN pip3 install -r require.txt
 
 ADD . /app
-CMD python /app/server.py
+CMD python3 /app/server.py

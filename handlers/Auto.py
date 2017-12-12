@@ -1,4 +1,5 @@
 import json
+import types
 import pandas as pd
 from .BaseHandler import BaseHandler
 from config import file_name_path, anti_spider
@@ -12,7 +13,18 @@ class AutoHandler(BaseHandler):
 
     def get(self):
         try:
-            top_ip_list = self.es.get_top_ip()
+            size = int(self.get_argument('size', default=10))
+        except Exception as e:
+            self.logger.warning("size:{} type:{} err:{}".format(size, type(size), e))
+            size = 10
+        self.logger.info("size:{} ".format(size))
+        if size < 0:
+            size = 10
+        elif size > 100:
+            size = 100
+
+        try:
+            top_ip_list = self.es.get_top_ip(size=size)
         except Exception as e:
             self.logger.error("{}".format(e))
             self.write(json.dumps({"err": "{}".format(e)}))
