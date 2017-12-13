@@ -4,11 +4,13 @@ import tornado.ioloop
 import tornado.options
 from tornado.options import options, define
 from urls import urls
+from utils import get_log
 from utils.esapi import ES
 from config import web_port, file_name_path, elasticsearch_conf
 
 define("port", default=web_port, help="run on the given port", type=int)
 define("file_name", default=file_name_path, help="tmp data file name", type=str)
+logger = get_log('ser')
 
 
 class Application(tornado.web.Application):
@@ -22,7 +24,7 @@ class Application(tornado.web.Application):
 def main():
     tornado.options.parse_command_line()
     app = Application()
-    print("ser port: ", options.port, 'cvs:', options.file_name)
+    logger.info("port:{port}  csv:{csv}".format(port=options.port, csv=options.file_name))
     app.listen(options.port)
     tornado.ioloop.IOLoop.current().start()
 
