@@ -9,15 +9,11 @@ class IpHandler(BaseHandler):
     """
 
     def get(self):
-        try:
-            only_ip = self.get_argument('only_ip', default='true')
-            if only_ip == "true":
-                top_ip = self.es.get_top_ip()
-                self.write(json.dumps(dict(ips=top_ip)))
-                return
-        except Exception as e:
-            self.logger.warning("{} onlyip:{}".format(e, only_ip))
-
+        only_ip = self.get_argument('only_ip', default='true')
+        if only_ip == "true":
+            top_ip = self.es.get_top_ip()
+            self.write(json.dumps(dict(ips=top_ip)))
+            return
         ips = self.get_arguments('ips')
         self.logger.info("ips:{}".format(ips))
         if not ips or len(ips) == 0:

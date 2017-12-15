@@ -13,37 +13,32 @@ class AutoHandler(BaseHandler):
 
     def get(self):
         # total ip总数
-        try:
-            total = int(self.get_argument('total', default=1000))
-        except Exception as e:
-            self.logger.warning("total:{} type:{} err:{}".format(total, type(total), e))
-            total = 1000
-
+        total = int(self.get_argument('total', default=1000))
         try:
             top_ip_list = self.es.get_top_ip(size=total)
         except Exception as e:
             self.logger.error("{}".format(e))
             self.write(json.dumps({"err": "{}".format(e)}))
             return
+        if total < 0:
+            total = 100
+        elif total > 5000:
+            total = 5000
 
         # size: 一次处理ip
-        try:
-            size = int(self.get_argument('size', default=100))
-        except Exception as e:
-            self.logger.warning("size:{} size:{} err:{}".format(size, type(size), e))
-            size = 1000
-
+        size = int(self.get_argument('size', default=100))
         if size < 0:
             size = 100
         elif size > 100:
             size = 100
 
         # from
-        try:
-            size_from = int(self.get_argument('from', default=1))
-        except Exception as e:
-            self.logger.warning("size_from:{} type:{} err:{}".format(size_from, type(size_from), e))
+        size_from = int(self.get_argument('from', default=1))
+        if size_from < 0:
             size_from = 1
+        elif size_from > total:
+            size_from = total
+
         start = size_from - 1
         if start < 0:
             start = 0
@@ -59,12 +54,7 @@ class AutoHandler(BaseHandler):
             df.loc[start+index] = [ip_key, ip_cnt, data.get('download.pureapk.com', '0.00%'), data.get('apkpure.com', '0.00%')]
 
         # from
-        try:
-            src = self.get_argument('src', default="")
-        except Exception as e:
-            self.logger.warning("src:{} type:{} err:{}".format(src, type(src), e))
-            src = ""
-
+        src = self.get_argument('src', default="")
         self.logger.info("total:{} start:{} end:{} src:{}".format(total, start, end, src))
         try:
             df = df.sort_values(['total', 'download.pureapk.com'], ascending=False)
