@@ -4,7 +4,7 @@ from .BaseHandler import BaseHandler
 
 class IpHandler(BaseHandler):
     """
-    启动获取top20_ip 进行分析访问的域名比例
+    启动获取topN_ip 进行分析访问的域名比例
 
     """
 

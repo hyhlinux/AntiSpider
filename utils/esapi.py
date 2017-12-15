@@ -24,7 +24,7 @@ class ES(object):
         )
         return es
 
-    def get_top_ip(self, size=50):
+    def get_top_ip(self, size=1000):
         now = datetime.datetime.now()
         aggs = {
             "topip": {
