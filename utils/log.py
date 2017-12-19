@@ -4,9 +4,10 @@
 import logging
 import datetime
 import json
+from config import file_log
 
 logging.basicConfig(
-	# filename='/tmp/apkpure_dcma.log',
+	# filename=file_log,
 	level=logging.INFO,
 	format='%(asctime)s:%(funcName)15s:%(lineno)5s%(levelname)8s:%(name)10s:%(message)s',
 	datefmt='%Y/%m/%d %I:%M:%S'
