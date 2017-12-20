@@ -1,10 +1,11 @@
 import os
-from handlers import AutoHandler, IpHandler
+from handlers import AutoHandler, IpHandler, AioAutoHandler
 from tornado.web import StaticFileHandler
 
 ip_api_urls = [
     (r'^/api/ip?', IpHandler),
     (r'^/api/auto', AutoHandler),
+    (r'^/api/aioauto', AioAutoHandler),
 ]
 
 urls = []

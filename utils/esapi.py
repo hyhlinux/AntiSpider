@@ -1,5 +1,7 @@
 import datetime
+import asyncio
 import elasticsearch
+from elasticsearch_async import AsyncElasticsearch
 from .log import get_log
 
 logger = get_log(name='esapi')
@@ -10,7 +12,19 @@ class ES(object):
     def __init__(self, hosts=None, index="nginx-access-log-*"):
         self.index = index
         self.es = self.connect_host(hosts=hosts)
+        self.aioes = self.aio_connect_host(hosts=hosts)
         self.logger = logger
+
+    @staticmethod
+    def aio_connect_host(hosts=None):
+        aioes = AsyncElasticsearch(
+            hosts,
+            sniffer_timeout=600
+        )
+        return aioes
+
+    def aio_close(self):
+        self.aioes.transport.close()
 
     @staticmethod
     def connect_host(hosts=None):
@@ -88,6 +102,53 @@ class ES(object):
         # 计算百分比
         data = {
             "ip": ip,
+            "total": total,
+        }
+        for domain in rate:
+            domain_key = domain.get('key', '')
+            domain_num = domain.get('doc_count', 0)
+            if not domain_key:
+                continue
+            data[domain_key] = "{:.2%}".format(domain_num / total)
+
+        return data
+
+    @asyncio.coroutine
+    def async_get_ip_rate(self, ip=""):
+        if not ip:
+            return None
+        now = datetime.datetime.now()
+        where_term = [
+            {
+                "field_name": "remote_ip",
+                "field_value": ip
+            }
+        ]
+
+        aggs = {
+            "rate": {
+                "terms": {
+                    "field": "domain.keyword",
+                    "size": 10,
+                    "order": {
+                        "_count": "desc"
+                    }
+                }
+            }
+        }
+
+        body = self.make_body(where_term=where_term,
+                              now_time=now, query_size=0, days=1, aggs=aggs)
+        res = yield from self.aioes.search(index=self.index, body=body)
+        total = res.get('hits', {}).get('total', 0)
+        rate = res.get('aggregations', {}).get(
+            'rate', {}).get('buckets', [])
+        if len(rate) == 0:
+            return None
+
+        # 计算百分比
+        data = {
+            "ip:": ip,
             "total": total,
         }
         for domain in rate:
