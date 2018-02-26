@@ -125,7 +125,7 @@ class ES(object):
             "query": {
                 "bool": {
                     "must": [
-                    ]
+                    ],
                     "must_not": [
                     ],
                 }
