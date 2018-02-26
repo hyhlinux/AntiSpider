@@ -15,7 +15,7 @@ class ES(object):
     @staticmethod
     def connect_host(hosts=None):
         if not hosts:
-            raise
+            raise Exception("host can't be empty ")
         es = elasticsearch.Elasticsearch(
             hosts,
             # sniff_on_start=True,
@@ -24,7 +24,7 @@ class ES(object):
         )
         return es
 
-    def get_top_ip(self, size=1000):
+    def get_top_ip(self, size=1000, ip_white_list=None):
         now = datetime.datetime.now()
         aggs = {
             "topip": {
@@ -43,11 +43,17 @@ class ES(object):
                 "field_value": "download.pureapk.com"
             }
         ]
+        must_not = None
+        if ip_white_list:
+            must_not = {
+                "terms": {
+                  "remote_ip": ip_white_list,
+                }
+            }
         body = self.make_body(where_term=where_term,
-                              now_time=now, query_size=0, days=1, aggs=aggs)
+                              now_time=now, query_size=0, days=1, aggs=aggs, must_not=must_not)
         res = self.es.search(index=self.index, body=body)
-        top_ip_list = res.get('aggregations', {}).get(
-            'topip', {}).get('buckets', [])
+        top_ip_list = res.get('aggregations', {}).get('topip', {}).get('buckets', [])
         if len(top_ip_list) == 0:
             return None
         self.logger.info("top{}_ip".format(len(top_ip_list)))
@@ -100,7 +106,10 @@ class ES(object):
         return data
 
 
-    def make_body(self, where_terms=None, where_term=None, now_time=None, days=1, sort=None, query_size=0, aggs=None, time_stamp="@timestamp"):
+    def make_body(self, where_terms=None, where_term=None,
+                  now_time=None, days=1, sort=None,
+                  query_size=0, aggs=None, time_stamp="@timestamp",
+                  must_not=None):
         """
 
         :param where_terms: 
@@ -117,9 +126,14 @@ class ES(object):
                 "bool": {
                     "must": [
                     ]
+                    "must_not": [
+                    ],
                 }
             },
         }
+        # 0. must_not
+        if must_not:
+            body['query']['bool']['must_not'].append(must_not)
         # 1. size query 返回的结果数量
         if query_size:
             body['size'] = query_size

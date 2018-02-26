@@ -37,7 +37,7 @@ def obj_format(obj=None, level=logging.DEBUG, timestamp=True, modle_name=False):
 	'''
 
 	if not obj:
-		raise 'obj is None'
+		raise Exception('obj is None')
 
 	# if not type(obj) is dict:
 	#     raise 'type(obj) must be dict'
@@ -55,6 +55,7 @@ def obj_format(obj=None, level=logging.DEBUG, timestamp=True, modle_name=False):
 
 
 def main():
+	logger.debug('debug')
 	logger.info('hello')
 
 
