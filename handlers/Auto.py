@@ -15,8 +15,9 @@ class AutoHandler(BaseHandler):
         # total ip总数
         total = int(self.get_argument('total', default=1000))
         ip_white_list = list(self.get_arguments('ips'))
+        ip_white_prefix_list = list(self.get_arguments('ipp'))
         try:
-            top_ip_list = self.es.get_top_ip(size=total, ip_white_list=ip_white_list)
+            top_ip_list = self.es.get_top_ip(size=total, ip_white_list=ip_white_list, ip_white_prefix_list=ip_white_prefix_list)
         except Exception as e:
             self.logger.error("{}".format(e))
             self.write(json.dumps({"err": "{}".format(e)}))
@@ -62,7 +63,8 @@ class AutoHandler(BaseHandler):
 
         # from
         src = self.get_argument('src', default="")
-        self.logger.info("total:{} start:{} end:{} src:{} ips:{}".format(total, start, end, src, ip_white_list))
+        self.logger.info("total:{} start:{} end:{} src:{} ips:{} ipp:{}".format(
+            total, start, end, src, ip_white_list, ip_white_prefix_list))
         try:
             df = df.sort_values(['total', 'download.pureapk.com'], ascending=False)
             self.logger.info("src-df:\n{}".format(df))

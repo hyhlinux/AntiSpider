@@ -24,7 +24,7 @@ class ES(object):
         )
         return es
 
-    def get_top_ip(self, size=1000, ip_white_list=None):
+    def get_top_ip(self, size=1000, ip_white_list=None, ip_white_prefix_list=None):
         now = datetime.datetime.now()
         aggs = {
             "topip": {
@@ -43,13 +43,25 @@ class ES(object):
                 "field_value": "download.pureapk.com"
             }
         ]
-        must_not = None
+        must_not = []
         if ip_white_list:
-            must_not = {
+            must_not.append({
                 "terms": {
                   "remote_ip": ip_white_list,
                 }
-            }
+            })
+        # ip段
+        if ip_white_prefix_list:
+            for ipp in ip_white_prefix_list:
+                prefix = {
+                    "prefix": {
+                        "remote_ip": {
+                            "value": ipp
+                        }
+                    }
+                }
+                must_not.append(prefix)
+
         body = self.make_body(where_term=where_term,
                               now_time=now, query_size=0, days=1, aggs=aggs, must_not=must_not)
         res = self.es.search(index=self.index, body=body)
@@ -133,7 +145,7 @@ class ES(object):
         }
         # 0. must_not
         if must_not:
-            body['query']['bool']['must_not'].append(must_not)
+            body['query']['bool']['must_not'] = must_not
         # 1. size query 返回的结果数量
         if query_size:
             body['size'] = query_size

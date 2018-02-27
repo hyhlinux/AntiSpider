@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 .idea/
 __pycache__/
+html/anti_spider.csv
 *.py[cod]
 *$py.class
 
