@@ -9,3 +9,9 @@
 ## 使用DataFrame 处理100个ip
 
 ## 返回的数据cvs
+
+## 编译
+```bash
+docker build -t registry.pureapk.com/huoyinghui/antispider  .
+docker push registry.pureapk.com/huoyinghui/antispider
+```
